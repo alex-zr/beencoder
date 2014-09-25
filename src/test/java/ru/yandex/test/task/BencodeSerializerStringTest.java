@@ -22,7 +22,7 @@ public class BencodeSerializerStringTest {
     public void testWriteStringNull() throws Exception {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         serializer = new BencodeSerializer(actual);
-        serializer.write(null);
+        serializer.write((String)null);
     }
 
     @Test

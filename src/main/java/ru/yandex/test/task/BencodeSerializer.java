@@ -1,9 +1,12 @@
 package ru.yandex.test.task;
 
 import ru.yandex.test.task.exceptions.SerializationException;
+import ru.yandex.test.task.types.BDictionary;
+import ru.yandex.test.task.types.BList;
+import ru.yandex.test.task.types.BValue;
+import ru.yandex.test.task.util.BUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -14,11 +17,9 @@ import java.io.OutputStream;
  */
 
 public class BencodeSerializer {
-    private InputStream inputStream;
     private OutputStream outputStream;
 
     public BencodeSerializer(OutputStream outputStream) {
-        this.inputStream = inputStream;
         this.outputStream = outputStream;
     }
 
@@ -42,6 +43,29 @@ public class BencodeSerializer {
         }
     }
 
+    public void write(BList bList) throws IOException {
+        outputStream.write(BConstants.LIST_PREFIX);
+        for (int i = 0; i < bList.getList().size(); i++) {
+            BValue element = bList.getList().get(i);
+            if (BUtil.isInteger(element)) {
+                write(BUtil.getInteger(element).getValue());
+            } else if (BUtil.isString(element)) {
+                write(BUtil.getString(element).getValue());
+            } else if (BUtil.isList(element)) {
+                write(BUtil.getList(element));
+            } else if (BUtil.isDictionary(element)) {
+                write(BUtil.getDictionary(element));
+            } else {
+                throw new SerializationException("Undefined element " + element);
+            }
+        }
+        outputStream.write(BConstants.POSTFIX);
+    }
+
+    private void write(BDictionary dictionary) {
+        // TODO implement
+    }
+
     /**
      * Close output stream
      */
@@ -63,4 +87,5 @@ public class BencodeSerializer {
             throw new SerializationException("Can't flush output stream ", e);
         }
     }
+
 }

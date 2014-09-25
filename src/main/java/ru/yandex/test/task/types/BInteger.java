@@ -5,7 +5,7 @@ package ru.yandex.test.task.types;
  * User: al1
  * Date: 25.09.14
  */
-public class BInteger {
+public class BInteger implements BValue {
     private int value;
 
     public BInteger() {
@@ -15,14 +15,13 @@ public class BInteger {
         this.value = value;
     }
 
-    public int getValue() {
+    @Override
+    public Integer getValue() {
         return value;
     }
 
     @Override
     public String toString() {
-        return "BInteger{" +
-                "value=" + value +
-                '}';
+        return "BInteger{" + value + '}';
     }
 }

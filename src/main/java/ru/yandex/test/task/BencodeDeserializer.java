@@ -1,10 +1,14 @@
 package ru.yandex.test.task;
 
 import ru.yandex.test.task.exceptions.DeserializationException;
-import ru.yandex.test.task.types.BValueWrapper;
+import ru.yandex.test.task.types.BInteger;
+import ru.yandex.test.task.types.BList;
+import ru.yandex.test.task.types.BString;
+import ru.yandex.test.task.types.BValue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,20 +18,24 @@ import java.io.InputStream;
 public class BencodeDeserializer {
     private static final String EXCEPTION_STREAM_END_MSG = "unexpected end of stream while encoding ";
     private InputStream inputStream;
+    private LinkedList<Integer> cacheStack;
 
     public BencodeDeserializer(InputStream inputStream) {
         this.inputStream = inputStream;
+        this.cacheStack = new LinkedList<>();
     }
 
-    public BValueWrapper readElement() throws IOException {
-        BValueWrapper wrapper;
-        int aByte;
-        while ((aByte = inputStream.read()) >= 0) {
-            char symbol = (char) aByte;
+    public BValue readElement() throws IOException {
+        Integer aByte;
+        while ((aByte = readNextElement()) != null) {
+            char symbol = (char) aByte.intValue();
             if (symbol == BConstants.INT_PREFIX) {
                 return readInt();
             } else if (Character.isDigit(symbol)) {
-                return readString(symbol);
+                pushBackElement(aByte);
+                return readString();
+            } else if (symbol == BConstants.LIST_PREFIX) {
+                return readList();
             } else {
                 throw new DeserializationException("Unexpected symbol - " + symbol);
             }
@@ -35,39 +43,39 @@ public class BencodeDeserializer {
         throw new IOException("Unexpected end of stream or stream is empty");
     }
 
-    private BValueWrapper readInt() throws IOException {
-        int aByte;
+    private BValue readInt() throws IOException {
+        Integer aByte;
         StringBuilder intBuilder = new StringBuilder();
-        while ((aByte = inputStream.read()) >= 0 && !isPostfix(aByte)) {
+        while ((aByte = readNextElement()) != null && !isPostfix(aByte)) {
             if (aByte < 0) {
                 throw new IOException(EXCEPTION_STREAM_END_MSG + "Integer");
             }
-            char symbol = (char) aByte;
+            char symbol = (char) aByte.intValue();
             intBuilder.append(symbol);
         }
-
+        // check if postfix present
+        if (aByte == null || !isPostfix(aByte)) {
+            throw new DeserializationException("Unexpected end of int, '" + BConstants.POSTFIX + "' expected");
+        }
         String strInt = intBuilder.toString();
         try {
-            return new BValueWrapper(Integer.parseInt(strInt));
+            return new BInteger(Integer.parseInt(strInt));
         } catch (NumberFormatException nfe) {
             throw new DeserializationException(EXCEPTION_STREAM_END_MSG + "Integer [" + strInt + "]");
         }
     }
 
 
-    private BValueWrapper readString(char symbol) throws IOException {
-        int length = readStringLength(symbol);
+    private BValue readString() throws IOException {
+        int length = readStringLength();
         String string = readStringContent(length);
-        return new BValueWrapper(string);
+        return new BString(string);
     }
 
-    private int readStringLength(char firstSymbol) throws IOException {
+    private int readStringLength() throws IOException {
         int aByte;
         StringBuilder lengthBuilder = new StringBuilder();
-        if (!isDelimiter(firstSymbol)) {
-            lengthBuilder.append(firstSymbol);
-        }
-        while ((aByte = inputStream.read()) >= 0 && !isDelimiter(aByte)) {
+        while ((aByte = readNextElement()) >= 0 && !isDelimiter(aByte)) {
             if (aByte < 0) {
                 throw new IOException(EXCEPTION_STREAM_END_MSG + "String");
             }
@@ -94,19 +102,20 @@ public class BencodeDeserializer {
             stringBuilder.append((char) aByte);
         }
         return stringBuilder.toString();
+    }
 
-/*        char[] value = new char[length];
-        int b;
-        for (int i = 0; i < length; i++) {
-            b = bis.read();
-            if (b == -1) {
-                throw new IOException(BC_MSG_EXCEPTION_STREAM_END
-                        + "String");
-            } else {
-                value[i] = (char) b;
-            }
+    private BList readList() throws IOException {
+        Integer aByte;
+        BList list = new BList();
+        while ((aByte = readNextElement()) != null && !isPostfix(aByte)) {
+            pushBackElement(aByte);
+            list.add(readElement());
         }
-        String s = new String(value);*/
+        // check is list postfix present
+        if (aByte == null || !isPostfix(aByte)) {
+            throw new DeserializationException("Unexpected end of list, '" + BConstants.POSTFIX + "' expected");
+        }
+        return list;
     }
 
     private boolean isDelimiter(int aByte) {
@@ -115,5 +124,20 @@ public class BencodeDeserializer {
 
     private boolean isPostfix(int aByte) {
         return (((char) aByte) == BConstants.POSTFIX);
+    }
+
+    private void pushBackElement(Integer aByte) {
+        cacheStack.push(aByte);
+    }
+
+    private Integer readNextElement() throws IOException {
+        Integer aByte;
+        if (cacheStack.peek() != null) {
+            return cacheStack.pop();
+        } else if ((aByte = inputStream.read()) >= 0) {
+            return aByte;
+        } else {
+            return null;
+        }
     }
 }

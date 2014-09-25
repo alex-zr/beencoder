@@ -45,4 +45,16 @@ public class BencodeSerializerIntTest {
 
         assertEquals("i0ei-20e", actual.toString());
     }
+
+    @Test
+    public void testFlushClose() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        serializer.write(0);
+        serializer.flush();
+        serializer.write(-20);
+        serializer.close();
+
+        assertEquals("i0ei-20e", actual.toString());
+    }
 }

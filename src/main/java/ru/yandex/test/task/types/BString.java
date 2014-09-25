@@ -5,13 +5,14 @@ package ru.yandex.test.task.types;
  * User: al1
  * Date: 25.09.14
  */
-public class BString {
+public class BString implements BValue {
     private String value;
 
     public BString(String value) {
         this.value = value;
     }
 
+    @Override
     public String getValue() {
         return value;
     }
