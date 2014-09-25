@@ -17,6 +17,11 @@ public class BValueWrapper {
         integer = new BInteger(intValue);
     }
 
+    public BValueWrapper(String string) {
+        type = BType.STRING;
+        this.string = new BString(string);
+    }
+
     public boolean isInteger() {
         return type == BType.INTEGER;
     }

@@ -18,4 +18,11 @@ public class BInteger {
     public int getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return "BInteger{" +
+                "value=" + value +
+                '}';
+    }
 }

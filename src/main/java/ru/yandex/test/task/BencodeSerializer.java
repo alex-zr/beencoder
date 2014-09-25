@@ -28,7 +28,17 @@ public class BencodeSerializer {
             outputStream.write(String.valueOf(intValue).getBytes());
             outputStream.write(BConstants.POSTFIX);
         } catch (IOException e) {
-            throw new SerializationException();
+            throw new SerializationException("Can't serialize int value", e);
+        }
+    }
+
+    public void write(String string) {
+        try {
+            outputStream.write(String.valueOf(string.length()).getBytes());
+            outputStream.write(BConstants.DELIMITER);
+            outputStream.write(string.getBytes());
+        } catch (IOException e) {
+            throw new SerializationException("Can't serialize String value", e);
         }
     }
 

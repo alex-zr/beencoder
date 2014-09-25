@@ -4,45 +4,43 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-public class BencodeSerializerTest {
+public class BencodeSerializerStringTest {
     private BencodeSerializer serializer;
 
     @Test
-    public void testWriteInt() throws Exception {
+    public void testWriteString() throws Exception {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         serializer = new BencodeSerializer(actual);
-        serializer.write(223);
+        serializer.write("Cypher");
 
-        assertEquals("i223e", actual.toString());
+        assertEquals("6:Cypher", actual.toString());
+    }
+
+    @Test(expected=NullPointerException.class)
+    public void testWriteStringNull() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        serializer.write(null);
     }
 
     @Test
-    public void testWriteIntNegative() throws Exception {
+    public void testWriteStringEmpty() throws Exception {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         serializer = new BencodeSerializer(actual);
-        serializer.write(-3);
+        serializer.write("");
 
-        assertEquals("i-3e", actual.toString());
+        assertEquals("0:", actual.toString());
     }
 
     @Test
-    public void testWriteIntZero() throws Exception {
+    public void testWriteStringTwice() throws Exception {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         serializer = new BencodeSerializer(actual);
-        serializer.write(-0);
+        serializer.write("0");
+        serializer.write("");
 
-        assertEquals("i0e", actual.toString());
-    }
-
-    @Test
-    public void testWriteIntTwice() throws Exception {
-        ByteArrayOutputStream actual = new ByteArrayOutputStream();
-        serializer = new BencodeSerializer(actual);
-        serializer.write(0);
-        serializer.write(-20);
-
-        assertEquals("i0ei-20e", actual.toString());
+        assertEquals("1:00:", actual.toString());
     }
 }

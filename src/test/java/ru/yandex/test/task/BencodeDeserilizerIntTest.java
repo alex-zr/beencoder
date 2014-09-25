@@ -1,19 +1,15 @@
 package ru.yandex.test.task;
 
-import org.junit.Before;
 import org.junit.Test;
 import ru.yandex.test.task.exceptions.DeserializationException;
 import ru.yandex.test.task.types.BValueWrapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-public class BencodeDeserilizerTest {
+public class BencodeDeserilizerIntTest {
     private BencodeDeserializer deserializer;
 
     @Test
@@ -38,12 +34,17 @@ public class BencodeDeserilizerTest {
 
     @Test
     public void testReadElementIntFromComplex() throws Exception {
-        InputStream actual = new ByteArrayInputStream("i-200e4grow".getBytes());
+        InputStream actual = new ByteArrayInputStream("i-200ei0e".getBytes());
         deserializer = new BencodeDeserializer(actual);
         BValueWrapper element = deserializer.readElement();
 
         assertTrue(element.isInteger());
         assertEquals(-200, element.getInteger().getValue());
+
+        element = deserializer.readElement();
+        assertTrue(element.isInteger());
+        assertEquals(0, element.getInteger().getValue());
+
     }
 
     @Test(expected = DeserializationException.class)
@@ -58,5 +59,17 @@ public class BencodeDeserilizerTest {
         InputStream actual = new ByteArrayInputStream("ie".getBytes());
         deserializer = new BencodeDeserializer(actual);
         deserializer.readElement();
+    }
+
+    @Test
+    public void testIsIntExcluding() throws Exception {
+        InputStream actual = new ByteArrayInputStream("i5e".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+        BValueWrapper element = deserializer.readElement();
+
+        assertTrue(element.isInteger());
+        assertFalse(element.isDictionary());
+        assertFalse(element.isList());
+        assertFalse(element.isString());
     }
 }
