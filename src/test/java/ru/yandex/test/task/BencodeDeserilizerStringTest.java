@@ -57,12 +57,10 @@ public class BencodeDeserilizerStringTest {
         BValue element = deserializer.readElement();
 
         assertTrue(BUtil.isString(element));
-        assertEquals("&", BUtil.getString(element).getValue());
+        assertEquals("%", BUtil.getString(element).getValue());
 
 
-        element = deserializer.readElement();
-        assertTrue(BUtil.isString(element));
-        assertEquals("JON", BUtil.getString(element).getValue());
+        deserializer.readElement();
     }
 
     @Test(expected=IOException.class)
