@@ -14,17 +14,12 @@ import java.io.OutputStream;
  */
 
 public class BencodeSerializer {
-
     private InputStream inputStream;
     private OutputStream outputStream;
 
-    public BencodeSerializer(InputStream inputStream, OutputStream outputStream) {
+    public BencodeSerializer(OutputStream outputStream) {
         this.inputStream = inputStream;
         this.outputStream = outputStream;
-    }
-
-    public BencodeSerializer(String filePath) {
-        // TODO check is present
     }
 
     public void write(int intValue) {

@@ -44,7 +44,6 @@ public class BencodeDeserializer {
 
         String strInt = intBuilder.toString();
         try {
-
             return new BValueWrapper(Integer.parseInt(strInt));
         } catch (NumberFormatException nfe) {
             throw new DeserializationException(EXCEPTION_STREAM_END_MSG + "Integer [" + strInt + "]");
