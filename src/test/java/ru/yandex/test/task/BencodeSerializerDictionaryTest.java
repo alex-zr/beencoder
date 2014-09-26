@@ -1,6 +1,7 @@
 package ru.yandex.test.task;
 
 import org.junit.Test;
+import ru.yandex.test.task.exceptions.SerializationException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.LinkedList;
@@ -95,17 +96,36 @@ public class BencodeSerializerDictionaryTest {
     }
 
     @Test
-    public void testWriteDictionaryOfEmptyDictionary() throws Exception {
+    public void testWriteDictionaryWithEmptyDictionary() throws Exception {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         serializer = new BencodeSerializer(actual);
         Map<String, Object> dictionary = new TreeMap<>();
         Map<String, Object> innerDictionary = new TreeMap<>();
         dictionary.put("1", innerDictionary);
 
-
         serializer.write(dictionary);
 
         assertEquals("d1:1dee", actual.toString());
+    }
+
+    @Test(expected = SerializationException.class)
+    public void testWriteDictionaryWithNull() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        Map<String, Object> dictionary = new TreeMap<>();
+        dictionary.put("null", null);
+
+        serializer.write(dictionary);
+    }
+
+    @Test(expected = SerializationException.class)
+    public void testWriteDictionaryWithObject() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        Map<String, Object> dictionary = new TreeMap<>();
+        dictionary.put("Object", new Object());
+
+        serializer.write(dictionary);
     }
 
     @Test

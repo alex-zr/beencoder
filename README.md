@@ -26,9 +26,9 @@ Mapping rules
  
  integer        <-> Integer
  
- list           <-> List<Object>
+ list           <-> ```java List<Object> ```
  
- dictionary     <-> SortedMap<String, Object>
+ dictionary     <-> ```java SortedMap<String, Object> ```
 
 
 Examples
@@ -38,9 +38,9 @@ Serializing objects to stream as simple as calling `bencodeSerializer.write()` o
 
 ```java
  BencodeSerializer serializer = new BencodeSerializer(new FileOutputStream("example.ser"));
- bencodeSerializer.write("foo bar");                 // => "7:foo bar"
- bencodeSerializer.write(42);                        // => "i42e"
- bencodeSerializer.write(Arrays.asList(1, 2, 3));    // => "li1ei2ei3ee"
+ serializer.write("foo bar");                 // => "7:foo bar"
+ serializer.write(42);                        // => "i42e"
+ serializer.write(Arrays.asList(1, 2, 3));    // => "li1ei2ei3ee"
  SortedMap<String, Object> map = new TreeMap<>();
  map.put("foo", 1);
  map.put("bar", -10);

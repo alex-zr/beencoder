@@ -46,7 +46,6 @@ public class BencodeDeserilizerIntTest {
         element = deserializer.readElement();
         assertTrue(isInteger(element));
         assertEquals(new Integer(0), getInteger(element));
-
     }
 
     @Test(expected = DeserializationException.class)

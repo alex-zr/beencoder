@@ -1,6 +1,7 @@
 package ru.yandex.test.task;
 
 import ru.yandex.test.task.exceptions.DeserializationException;
+import ru.yandex.test.task.utils.BUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,9 +11,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Created with IntelliJ IDEA.
- * User: al1
- * Date: 25.09.14
+ * Stream deserializer for "B-encode" data format
+ *
+ * @author Oleksandr Roshchupkin
+ * @since 25-09-2014
  */
 public class BencodeDeserializer {
     private static final String EXCEPTION_STREAM_END_MSG = "unexpected end of stream while encoding ";
@@ -20,24 +22,32 @@ public class BencodeDeserializer {
     private final LinkedList<Integer> cacheStack; // May be better to extract stack to separated class
     private final StringBuilder errorContext;
 
-    public BencodeDeserializer(InputStream inputStream) {
+    public BencodeDeserializer(final InputStream inputStream) {
         this.inputStream = inputStream;
         this.cacheStack = new LinkedList<>();
         this.errorContext = new StringBuilder();
     }
 
+    /**
+     * Deserialized recursively one element of stream into the following types:
+     * [String, Integer, List<Object>, SortedMap<String, Object>]
+     *
+     * @return
+     * @throws IOException
+     * @throws DeserializationException
+     */
     public Object readElement() throws IOException {
         Integer aByte;
         while ((aByte = readNextElement()) != null) {
             char symbol = (char) aByte.intValue();
-            if (symbol == BConstants.INT_PREFIX) {
+            if (symbol == BUtil.INT_PREFIX) {
                 return readInt();
             } else if (Character.isDigit(symbol)) {
                 pushBackElement(aByte);
                 return readString();
-            } else if (symbol == BConstants.LIST_PREFIX) {
+            } else if (symbol == BUtil.LIST_PREFIX) {
                 return readList();
-            } else if (symbol == BConstants.DICTIONARY_PREFIX) {
+            } else if (symbol == BUtil.DICTIONARY_PREFIX) {
                 return readDictionary();
             } else {
                 throw new DeserializationException("Unexpected symbol '" + symbol + "'");
@@ -58,7 +68,7 @@ public class BencodeDeserializer {
         }
         // check if postfix present
         if (aByte == null || !isPostfix(aByte)) {
-            throw new DeserializationException("Unexpected end of int, '" + BConstants.POSTFIX + "' expected");
+            throw new DeserializationException("Unexpected end of int, '" + BUtil.POSTFIX + "' expected");
         }
         String strInt = intBuilder.toString();
         try {
@@ -96,7 +106,7 @@ public class BencodeDeserializer {
         }
     }
 
-    private String readStringContent(int length) throws IOException {
+    private String readStringContent(final int length) throws IOException {
         StringBuilder stringBuilder = new StringBuilder(length);
         int aByte;
         for (int i = 0; i < length; i++) {
@@ -120,9 +130,9 @@ public class BencodeDeserializer {
         return list;
     }
 
-    private void checkPostfix(Integer aByte) {
+    private void checkPostfix(final Integer aByte) {
         if (aByte == null || !isPostfix(aByte)) {
-            throw new DeserializationException("Unexpected end of element, "+ errorContext + "'" + BConstants.POSTFIX + "' expected");
+            throw new DeserializationException("Unexpected end of element, "+ errorContext + "'" + BUtil.POSTFIX + "' expected");
         }
     }
 
@@ -149,15 +159,15 @@ public class BencodeDeserializer {
         }
     }
 
-    private boolean isDelimiter(int aByte) {
-        return (((char) aByte) == BConstants.DELIMITER);
+    private boolean isDelimiter(final int aByte) {
+        return (((char) aByte) == BUtil.DELIMITER);
     }
 
-    private boolean isPostfix(int aByte) {
-        return (((char) aByte) == BConstants.POSTFIX);
+    private boolean isPostfix(final int aByte) {
+        return (((char) aByte) == BUtil.POSTFIX);
     }
 
-    private void pushBackElement(Integer aByte) {
+    private void pushBackElement(final Integer aByte) {
         cacheStack.push(aByte);
     }
 
@@ -176,7 +186,7 @@ public class BencodeDeserializer {
         return resultByte;
     }
 
-    private void prepareContext(Integer resultByte) {
+    private void prepareContext(final Integer resultByte) {
         if (errorContext.length() > 10) {
             errorContext.delete(0, errorContext.length() - 1);
         }

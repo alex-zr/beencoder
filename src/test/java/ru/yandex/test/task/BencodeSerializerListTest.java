@@ -1,6 +1,7 @@
 package ru.yandex.test.task;
 
 import org.junit.Test;
+import ru.yandex.test.task.exceptions.SerializationException;
 
 import java.io.ByteArrayOutputStream;
 import java.util.LinkedList;
@@ -65,6 +66,23 @@ public class BencodeSerializerListTest {
         assertEquals("le", actual.toString());
     }
 
+    @Test(expected = SerializationException.class)
+    public void testWriteListNullElement() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        List<Object> list = new LinkedList<>();
+        list.add(null);
+        serializer.write(list);
+    }
+
+    @Test(expected = SerializationException.class)
+    public void testWriteListDoubleElement() throws Exception {
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        serializer = new BencodeSerializer(actual);
+        List<Object> list = new LinkedList<>();
+        list.add(1.1);
+        serializer.write(list);
+    }
 
     @Test
     public void testWriteListOfIntAndDictionary() throws Exception {
@@ -78,6 +96,5 @@ public class BencodeSerializerListTest {
         serializer.write(list);
 
         assertEquals("li33455ed1:ii12eee", actual.toString());
-
     }
 }

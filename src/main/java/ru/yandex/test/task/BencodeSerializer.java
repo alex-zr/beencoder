@@ -10,7 +10,7 @@ import java.util.Map;
 import static ru.yandex.test.task.utils.BUtil.*;
 
 /**
- * Stream serializer/serializer for "B-encode" data format
+ * Stream serializer for "B-encode" data format
  *
  * @author Oleksandr Roshchupkin
  * @since 24-09-2014
@@ -19,39 +19,60 @@ import static ru.yandex.test.task.utils.BUtil.*;
 public class BencodeSerializer {
     private final OutputStream outputStream;
 
-    public BencodeSerializer(OutputStream outputStream) {
+    public BencodeSerializer(final OutputStream outputStream) {
         this.outputStream = outputStream;
     }
 
-    public void write(int intValue) {
+    /**
+     * Write integer value to b-encode format
+     *
+     * @param intValue
+     */
+    public void write(final int intValue) {
         try {
-            outputStream.write(BConstants.INT_PREFIX);
+            outputStream.write(INT_PREFIX);
             outputStream.write(String.valueOf(intValue).getBytes());
-            outputStream.write(BConstants.POSTFIX);
+            outputStream.write(POSTFIX);
         } catch (IOException e) {
             throw new SerializationException("Can't serialize int value", e);
         }
     }
 
-    public void write(String string) {
+    /**
+     * Write String value to b-encode format
+     *
+     * @param string
+     */
+    public void write(final String string) {
         try {
             outputStream.write(String.valueOf(string.length()).getBytes());
-            outputStream.write(BConstants.DELIMITER);
+            outputStream.write(DELIMITER);
             outputStream.write(string.getBytes());
         } catch (IOException e) {
             throw new SerializationException("Can't serialize String value", e);
         }
     }
 
-    public void write(List<Object> list) throws IOException {
-        outputStream.write(BConstants.LIST_PREFIX);
+    /**
+     * Write List<Object> to b-encode format recursively, contains following types:
+     * [String, Integer, List<Object>, SortedMap<String, Object>]
+     *
+     * @param list is type of List<Object>
+     * @throws IOException
+     * @throws SerializationException
+     */
+    public void write(final List<Object> list) throws IOException {
+        outputStream.write(LIST_PREFIX);
         for (Object element : list) {
             writeElement(element);
         }
-        outputStream.write(BConstants.POSTFIX);
+        outputStream.write(POSTFIX);
     }
 
-    private void writeElement(Object element) throws IOException {
+    /**
+     * Recursion will replaced to iteration in next version
+     */
+    private void writeElement(final Object element) throws IOException {
         if (isInteger(element)) {
             write(getInteger(element));
         } else if (isString(element)) {
@@ -61,17 +82,27 @@ public class BencodeSerializer {
         } else if (isDictionary(element)) {
             write(getDictionary(element));
         } else {
-            throw new SerializationException("Undefined element " + element);
+            throw new SerializationException("Undefined element type '" + (element != null ? element.getClass() : null) +
+                    "', use [String, Integer, List<Object>, SortedMap<String, Object>]");
         }
     }
 
-    public void write(Map<String, Object> dictionary) throws IOException {
-        outputStream.write(BConstants.DICTIONARY_PREFIX);
+    /**
+     * Write SortedSet<String, Object> to b-encode format,
+     * key is String
+     * value is one of following types:
+     * [String, Integer, List<Object>, SortedMap<String, Object>]
+     *
+     * @param dictionary is type of SortedSet<String, Object>
+     * @throws IOException
+     */
+    public void write(final Map<String, Object> dictionary) throws IOException {
+        outputStream.write(DICTIONARY_PREFIX);
         for (Map.Entry<String, Object> pair : dictionary.entrySet()) {
             write(pair.getKey());
             writeElement(pair.getValue());
         }
-        outputStream.write(BConstants.POSTFIX);
+        outputStream.write(POSTFIX);
     }
 
     /**
