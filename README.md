@@ -23,8 +23,11 @@ Mapping rules
 -------------
 
  byte string    <-> String
+ 
  integer        <-> Integer
+ 
  list           <-> List<Object>
+ 
  dictionary     <-> SortedMap<String, Object>
 
 
