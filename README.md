@@ -26,9 +26,9 @@ Mapping rules
  
  integer        <-> Integer
  
- list           <-> ```java List<Object> ```
+ list           <-> ``` List<Object> ```
  
- dictionary     <-> ```java SortedMap<String, Object> ```
+ dictionary     <-> ``` SortedMap<String, Object> ```
 
 
 Examples
