@@ -1,5 +1,5 @@
-Java bencode binding
-====================
+Java bencode serializator
+=========================
 
 This is a simple library for serializing and deserializing of bencoded data.
 
