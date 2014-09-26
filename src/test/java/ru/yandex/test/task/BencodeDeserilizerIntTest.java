@@ -2,14 +2,14 @@ package ru.yandex.test.task;
 
 import org.junit.Test;
 import ru.yandex.test.task.exceptions.DeserializationException;
-import ru.yandex.test.task.types.BValue;
-import ru.yandex.test.task.util.BUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ru.yandex.test.task.utils.BUtil.getInteger;
+import static ru.yandex.test.task.utils.BUtil.isInteger;
 
 public class BencodeDeserilizerIntTest {
     private BencodeDeserializer deserializer;
@@ -18,34 +18,34 @@ public class BencodeDeserilizerIntTest {
     public void testReadElementInt() throws Exception {
         InputStream actual = new ByteArrayInputStream("i5e".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isInteger(element));
-        assertEquals(new Integer(5), BUtil.getInteger(element).getValue());
+        assertTrue(isInteger(element));
+        assertEquals(new Integer(5), getInteger(element));
     }
 
     @Test
     public void testReadElementIntNegative() throws Exception {
         InputStream actual = new ByteArrayInputStream("i-200e".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isInteger(element));
-        assertEquals(new Integer(-200), BUtil.getInteger(element).getValue());
+        assertTrue(isInteger(element));
+        assertEquals(new Integer(-200), getInteger(element));
     }
 
     @Test
     public void testReadElementIntFromComplex() throws Exception {
         InputStream actual = new ByteArrayInputStream("i-200ei0e".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isInteger(element));
-        assertEquals(new Integer(-200), BUtil.getInteger(element).getValue());
+        assertTrue(isInteger(element));
+        assertEquals(new Integer(-200), getInteger(element));
 
         element = deserializer.readElement();
-        assertTrue(BUtil.isInteger(element));
-        assertEquals(new Integer(0), BUtil.getInteger(element).getValue());
+        assertTrue(isInteger(element));
+        assertEquals(new Integer(0), getInteger(element));
 
     }
 

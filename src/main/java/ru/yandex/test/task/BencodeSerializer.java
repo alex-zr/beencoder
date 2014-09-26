@@ -1,13 +1,13 @@
 package ru.yandex.test.task;
 
 import ru.yandex.test.task.exceptions.SerializationException;
-import ru.yandex.test.task.types.BDictionary;
-import ru.yandex.test.task.types.BList;
-import ru.yandex.test.task.types.BValue;
-import ru.yandex.test.task.util.BUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+
+import static ru.yandex.test.task.utils.BUtil.*;
 
 /**
  * Stream serializer/serializer for "B-encode" data format
@@ -17,7 +17,7 @@ import java.io.OutputStream;
  */
 
 public class BencodeSerializer {
-    private OutputStream outputStream;
+    private final OutputStream outputStream;
 
     public BencodeSerializer(OutputStream outputStream) {
         this.outputStream = outputStream;
@@ -43,27 +43,35 @@ public class BencodeSerializer {
         }
     }
 
-    public void write(BList bList) throws IOException {
+    public void write(List<Object> list) throws IOException {
         outputStream.write(BConstants.LIST_PREFIX);
-        for (int i = 0; i < bList.getList().size(); i++) {
-            BValue element = bList.getList().get(i);
-            if (BUtil.isInteger(element)) {
-                write(BUtil.getInteger(element).getValue());
-            } else if (BUtil.isString(element)) {
-                write(BUtil.getString(element).getValue());
-            } else if (BUtil.isList(element)) {
-                write(BUtil.getList(element));
-            } else if (BUtil.isDictionary(element)) {
-                write(BUtil.getDictionary(element));
-            } else {
-                throw new SerializationException("Undefined element " + element);
-            }
+        for (Object element : list) {
+            writeElement(element);
         }
         outputStream.write(BConstants.POSTFIX);
     }
 
-    private void write(BDictionary dictionary) {
-        // TODO implement
+    private void writeElement(Object element) throws IOException {
+        if (isInteger(element)) {
+            write(getInteger(element));
+        } else if (isString(element)) {
+            write(getString(element));
+        } else if (isList(element)) {
+            write(getList(element));
+        } else if (isDictionary(element)) {
+            write(getDictionary(element));
+        } else {
+            throw new SerializationException("Undefined element " + element);
+        }
+    }
+
+    public void write(Map<String, Object> dictionary) throws IOException {
+        outputStream.write(BConstants.DICTIONARY_PREFIX);
+        for (Map.Entry<String, Object> pair : dictionary.entrySet()) {
+            write(pair.getKey());
+            writeElement(pair.getValue());
+        }
+        outputStream.write(BConstants.POSTFIX);
     }
 
     /**
@@ -87,5 +95,4 @@ public class BencodeSerializer {
             throw new SerializationException("Can't flush output stream ", e);
         }
     }
-
 }

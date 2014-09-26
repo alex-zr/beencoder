@@ -2,15 +2,14 @@ package ru.yandex.test.task;
 
 import org.junit.Test;
 import ru.yandex.test.task.exceptions.DeserializationException;
-import ru.yandex.test.task.types.BValue;
-import ru.yandex.test.task.util.BUtil;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ru.yandex.test.task.utils.BUtil.getString;
+import static ru.yandex.test.task.utils.BUtil.isString;
 
 public class BencodeDeserilizerStringTest {
     private BencodeDeserializer deserializer;
@@ -19,51 +18,65 @@ public class BencodeDeserilizerStringTest {
     public void testReadElementString() throws Exception {
         InputStream actual = new ByteArrayInputStream("5:33344".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("33344", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("33344", getString(element));
     }
 
     @Test
     public void testReadElementStringSingle() throws Exception {
         InputStream actual = new ByteArrayInputStream("1:&".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("&", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("&", getString(element));
     }
 
     @Test
     public void testReadElementStringTwoSinglerComplex() throws Exception {
         InputStream actual = new ByteArrayInputStream("1:&3:JON".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("&", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("&", getString(element));
 
 
         element = deserializer.readElement();
-        assertTrue(BUtil.isString(element));
-        assertEquals("JON", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("JON", getString(element));
+    }
+
+    @Test(expected = DeserializationException.class)
+    public void testReadElementStringWrongDelimiter() throws Exception {
+        InputStream actual = new ByteArrayInputStream("1;&3:JON".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+        Object element = deserializer.readElement();
+
+        assertTrue(isString(element));
+        assertEquals("&", getString(element));
+
+
+        element = deserializer.readElement();
+        assertTrue(isString(element));
+        assertEquals("JON", getString(element));
     }
 
     @Test(expected = DeserializationException.class)
     public void testReadElementStringIllegalLength() throws Exception {
         InputStream actual = new ByteArrayInputStream("1:%&3:JON".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("%", BUtil.getString(element).getValue());
-
+        assertTrue(isString(element));
+        assertEquals("%", getString(element));
 
         deserializer.readElement();
     }
 
-    @Test(expected=IOException.class)
+    @Test(expected=DeserializationException.class)
     public void testReadElementEmptyStream() throws Exception {
         InputStream actual = new ByteArrayInputStream("".getBytes());
         deserializer = new BencodeDeserializer(actual);
@@ -74,10 +87,10 @@ public class BencodeDeserilizerStringTest {
     public void testReadElementStringEmpty() throws Exception {
         InputStream actual = new ByteArrayInputStream("0:".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("", getString(element));
     }
 
     @Test(expected=DeserializationException.class)
@@ -105,15 +118,14 @@ public class BencodeDeserilizerStringTest {
     public void testReadElementStringFromComplex() throws Exception {
         InputStream actual = new ByteArrayInputStream("1:a4:!@#$".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        BValue element = deserializer.readElement();
+        Object element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("a", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("a", getString(element));
 
         element = deserializer.readElement();
 
-        assertTrue(BUtil.isString(element));
-        assertEquals("!@#$", BUtil.getString(element).getValue());
+        assertTrue(isString(element));
+        assertEquals("!@#$", getString(element));
     }
-
 }
