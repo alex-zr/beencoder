@@ -56,13 +56,13 @@ Decoding a data stream in chunks works as follows:
     BencodeDeserializer deserializer = new BencodeDeserializer(new FileInputStream("example.ser"));
     while (deserializer.hasNext()) {
         if (deserializer.hasNextDictionary()) {
-            handleDictionary();
+            handleDictionary(deserializer.nextDictionary());
         } else if (deserializer.hasNextInt()) {
-            handleInt();
+            handleInt(deserializer.nextInt());
         } else if (deserializer.hasNextString()) {
-            handleString();
+            handleString(deserializer.nextString());
         } else if (deserializer.hasNextList()) {
-            handleList();
+            handleList(deserializer.nextList());
         }
     }
     deserializer.close();
