@@ -22,13 +22,13 @@ It contains only four data types, namely:
 Mapping rules
 -------------
 
- byte string    <-> String
+ byte string    < -- > String
  
- integer        <-> Integer
+ integer        < -- > int
  
- list           <-> ```java List<Object> ```
+ list           < -- > ```java List<Object> ```
  
- dictionary     <-> ```java SortedMap<String, Object> ```
+ dictionary     < -- > ```java SortedMap<String, Object> ```
 
 
 Examples
@@ -37,14 +37,15 @@ Examples
 Serializing objects to stream as simple as calling `bencodeSerializer.write()` on them:
 
 ```java
- BencodeSerializer serializer = new BencodeSerializer(new FileOutputStream("example.ser"));
- serializer.write("foo bar");                 // => "7:foo bar"
- serializer.write(42);                        // => "i42e"
- serializer.write(Arrays.asList(1, 2, 3));    // => "li1ei2ei3ee"
- SortedMap<String, Object> map = new TreeMap<>();
- map.put("foo", 1);
- map.put("bar", -10);
- bencodeSerializer.write(map);                       // => "d3:bari-10e3:fooi1ee"
+    BencodeSerializer serializer = new BencodeSerializer(new FileOutputStream("example.ser"));
+    serializer.write("foo bar");                 // => "7:foo bar"
+    serializer.write(42);                        // => "i42e"
+    serializer.write(Arrays.asList(1, 2, 3));    // => "li1ei2ei3ee"
+    SortedMap<String, Object> map = new TreeMap<>();
+    map.put("foo", 1);
+    map.put("bar", -10);
+    bencodeSerializer.write(map);                       // => "d3:bari-10e3:fooi1ee"
+    serializer.close();
 ```
 
 Decoding a complete data stream is as easy as calling `bencodeDeserializer.readElement()`.
@@ -52,9 +53,17 @@ Decoding a complete data stream is as easy as calling `bencodeDeserializer.readE
 Decoding a data stream in chunks works as follows:
 
 ```java
- BencodeDeserializer deserializer = new BencodeDeserializer(new FileInputStream("example.ser"));
- Object element = deserializer.readElement();
- if (BUtil.isString(element)) {
-    System.out.println(BUtil.getString(element));    // => "foo bar"
- }
+    BencodeDeserializer deserializer = new BencodeDeserializer(new FileInputStream("example.ser"));
+    while (deserializer.hasNext()) {
+        if (deserializer.hasNextDictionary()) {
+            handleDictionary();
+        } else if (deserializer.hasNextInt()) {
+            handleInt();
+        } else if (deserializer.hasNextString()) {
+            handleString();
+        } else if (deserializer.hasNextList()) {
+            handleList();
+        }
+    }
+    deserializer.close();
 ```

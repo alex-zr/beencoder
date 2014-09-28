@@ -5,128 +5,139 @@ import ru.yandex.test.task.exceptions.DeserializationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static ru.yandex.test.task.utils.BUtil.*;
+import static org.junit.Assert.*;
+import static ru.yandex.test.task.TestUtil.buildMap;
 
 public class BencodeDeserilizerListTest {
     private BencodeDeserializer deserializer;
 
     @Test
-    public void testReadElementListInt() throws Exception {
+    public void testNextListInt() throws Exception {
         InputStream actual = new ByteArrayInputStream("li5ee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        Integer integer = getInteger(list.get(0));
-        assertEquals(new Integer(5), integer);
+        if (!deserializer.hasNextList()) {
+            fail("Expected List");
+        }
+        List actualList = deserializer.nextList();
+        assertEquals(Arrays.asList(5), actualList);
     }
 
     @Test
-    public void testReadElementListString() throws Exception {
-        InputStream actual = new ByteArrayInputStream("l5:55555e".getBytes());
+    public void testNextListStringAndInt() throws Exception {
+        InputStream actual = new ByteArrayInputStream("l5:55555i777ee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        String string = getString(list.get(0));
-        assertEquals("55555", string);
+        assertTrue(deserializer.hasNextList());
+        assertEquals(Arrays.asList("55555", 777), deserializer.nextList());
     }
 
     @Test
-    public void testReadElementListListInt() throws Exception {
+    public void testNextListListInt() throws Exception {
         InputStream actual = new ByteArrayInputStream("lli687eee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        List<Object> innerList = getList(list.get(0));
-        assertEquals(new Integer(687), getInteger(innerList.get(0)));
+        assertTrue(deserializer.hasNextList());
+        assertEquals(Arrays.asList(Arrays.asList(687)), deserializer.nextList());
     }
 
     @Test
-    public void testReadElementListOfListIntAndListInt() throws Exception {
-        InputStream actual = new ByteArrayInputStream("lli687eeli352eee".getBytes());
+    public void testNextListOfListIntsAndListOfStringAndInt() throws Exception {
+        InputStream actual = new ByteArrayInputStream("lli687ei8eel3:352i2eee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        List<Object> innerList1 = getList(list.get(0));
-        List<Object> innerList2 = getList(list.get(1));
-        assertEquals(new Integer(687), getInteger(innerList1.get(0)));
-        assertEquals(new Integer(352), getInteger(innerList2.get(0)));
+        assertTrue(deserializer.hasNextList());
+        assertEquals(Arrays.asList(Arrays.asList(687, 8), Arrays.asList("352", 2)), deserializer.nextList());
+    }
+
+    @Test
+    public void testNextListDictionary() throws Exception {
+        InputStream actual = new ByteArrayInputStream("d3:inti687ee".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+
+        assertFalse(deserializer.hasNextList());
+        assertTrue(deserializer.hasNextDictionary());
+        Map<String, Object> map = deserializer.nextDictionary();
+        assertEquals(1, map.size());
     }
 
     @Test(expected = DeserializationException.class)
-    public void testReadElementListOfListIntAndListIntWithout2Postfixes() throws Exception {
+    public void testNextListOfListIntAndListIntWithout2Postfixes() throws Exception {
         InputStream actual = new ByteArrayInputStream("lli687eli352e".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        deserializer.readElement();
+        deserializer.nextList();
     }
 
     @Test(expected = DeserializationException.class)
-    public void testReadElementListOfListIntAndListIntWithout1Postfix() throws Exception {
+    public void testNextListOfListIntAndListIntWithout1Postfix() throws Exception {
         InputStream actual = new ByteArrayInputStream("lli687eli352ee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        deserializer.readElement();
+        deserializer.nextList();
     }
 
     @Test
-    public void testReadElementListOfListIntAndInt() throws Exception {
+    public void testNextListOfListIntAndInt() throws Exception {
         InputStream actual = new ByteArrayInputStream("lli687eei352ee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        List<Object> innerList = getList(list.get(0));
-        assertTrue(isInteger(list.get(1)));
-
-        Integer integer = getInteger(list.get(1));
-        assertTrue(isInteger(innerList.get(0)));
-        assertEquals(new Integer(687), getInteger(innerList.get(0)));
-        assertEquals(new Integer(352), integer);
+        assertTrue(deserializer.hasNextList());
+        assertEquals(Arrays.asList(Arrays.asList(687), 352), deserializer.nextList());
     }
 
     @Test(expected = DeserializationException.class)
-    public void testReadElementListOfListIntAndIntWithoutPostfix() throws Exception {
+    public void testNextListOfListIntAndIntWithoutPostfix() throws Exception {
         InputStream actual = new ByteArrayInputStream("lli687ei352ee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        deserializer.readElement();
+        deserializer.nextList();
     }
 
     @Test
-    public void testReadElementListOfIntAndDictionaryOfInt() throws Exception {
+    public void testNextListOfIntAndDictionaryOfInt() throws Exception {
         InputStream actual = new ByteArrayInputStream("li352ed3:inti687eee".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        assertTrue(isInteger(list.get(0)));
-        assertEquals(new Integer(352), getInteger(list.get(0)));
-
-        assertTrue(isDictionary(list.get(1)));
-        Map<String, Object> innerDictionary = getDictionary(list.get(1));
-        assertEquals(new Integer(687), getInteger(innerDictionary.get("int")));
+        assertTrue(deserializer.hasNextList());
+        List actualList = deserializer.nextList();
+        Map<String, Object> expectedMap = buildMap("int", 687);
+        assertEquals(Arrays.asList(352, expectedMap), actualList);
     }
 
     @Test
-    public void testReadElementListEmpty() throws Exception {
+    public void testNextListEmpty() throws Exception {
         InputStream actual = new ByteArrayInputStream("le".getBytes());
         deserializer = new BencodeDeserializer(actual);
-        Object element = deserializer.readElement();
 
-        assertTrue(isList(element));
-        List<Object> list = getList(element);
-        assertTrue(list.isEmpty());
+        assertTrue(deserializer.hasNextList());
+        List actualList = deserializer.nextList();
+        assertTrue(actualList.isEmpty());
+    }
+
+    @Test
+    public void testHasNextListValid() throws Exception {
+        InputStream actual = new ByteArrayInputStream("lli687ei8eel3:352i2eee".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+
+        assertTrue(deserializer.hasNextList());
+    }
+
+    @Test
+    public void testHasNextListDictionary() throws Exception {
+        InputStream actual = new ByteArrayInputStream("d3:inti687ee".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+
+        assertFalse(deserializer.hasNextList());
+        assertTrue(deserializer.hasNextDictionary());
+    }
+
+    @Test
+    public void testHasNextListEmpty() throws Exception {
+        InputStream actual = new ByteArrayInputStream("le".getBytes());
+        deserializer = new BencodeDeserializer(actual);
+
+        assertTrue(deserializer.hasNextList());
     }
 }

@@ -1,7 +1,6 @@
 package ru.yandex.test.task.utils;
 
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 
 /**
@@ -55,63 +54,5 @@ public class BUtil {
      */
     public static boolean isDictionary(Object value) {
         return value instanceof SortedMap;
-    }
-
-    /**
-     * Convert value to Integer with validation
-     *
-     * @param value - value to convert
-     * @return converted Integer from value
-     * @throws IllegalArgumentException
-     */
-    public static Integer getInteger(Object value) {
-        if (!isInteger(value)) {
-            throw new IllegalArgumentException("Type is not an int");
-        }
-        return  ((Integer) value);
-    }
-
-    /**
-     * Convert value to String with validation
-     *
-     * @param value - value to convert
-     * @return converted String from value
-     * @throws IllegalArgumentException
-     */
-    public static String getString(Object value) {
-        if (!isString(value)) {
-            throw new IllegalArgumentException("Type is not an String");
-        }
-        return ((String) value);
-    }
-
-    /**
-     * Convert value to List with validation
-     *
-     * @param value - value to convert
-     * @return converted List from value
-     * @throws IllegalArgumentException
-     */
-    @SuppressWarnings("unchecked")
-    public static List<Object> getList(Object value) {
-        if (!isList(value)) {
-            throw new IllegalArgumentException("Type is not an List");
-        }
-        return ((List<Object>) value);
-    }
-
-    /**
-     * Convert value to Map with validation
-     *
-     * @param value - value to convert
-     * @return converted Map from value
-     * @throws IllegalArgumentException
-     */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getDictionary(Object value) {
-        if (!isDictionary(value)) {
-            throw new IllegalArgumentException("Type is not an Dictionary");
-        }
-        return ((Map<String, Object>) value);
     }
 }

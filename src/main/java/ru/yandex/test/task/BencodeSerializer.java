@@ -2,6 +2,7 @@ package ru.yandex.test.task;
 
 import ru.yandex.test.task.exceptions.SerializationException;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -16,7 +17,7 @@ import static ru.yandex.test.task.utils.BUtil.*;
  * @since 24-09-2014
  */
 
-public class BencodeSerializer {
+public class BencodeSerializer implements Closeable {
     private final OutputStream outputStream;
 
     public BencodeSerializer(final OutputStream outputStream) {
@@ -24,7 +25,7 @@ public class BencodeSerializer {
     }
 
     /**
-     * Write integer value to b-encode format
+     * Write int value to b-encode format
      *
      * @param intValue
      */
@@ -55,7 +56,7 @@ public class BencodeSerializer {
 
     /**
      * Write List<Object> to b-encode format recursively, contains following types:
-     * [String, Integer, List<Object>, SortedMap<String, Object>]
+     * [String, int, List<Object>, SortedMap<String, Object>]
      *
      * @param list is type of List<Object>
      * @throws IOException
@@ -91,7 +92,7 @@ public class BencodeSerializer {
      * Write SortedSet<String, Object> to b-encode format,
      * key is String
      * value is one of following types:
-     * [String, Integer, List<Object>, SortedMap<String, Object>]
+     * [String, int, List<Object>, SortedMap<String, Object>]
      *
      * @param dictionary is type of SortedSet<String, Object>
      * @throws IOException
@@ -125,5 +126,63 @@ public class BencodeSerializer {
         } catch (IOException e) {
             throw new SerializationException("Can't flush output stream ", e);
         }
+    }
+
+    /**
+     * Convert value to Integer with validation
+     *
+     * @param value - value to convert
+     * @return converted Integer from value
+     * @throws IllegalArgumentException
+     */
+    private static Integer getInteger(Object value) {
+        if (!isInteger(value)) {
+            throw new IllegalArgumentException("Type is not an int");
+        }
+        return  ((Integer) value);
+    }
+
+    /**
+     * Convert value to String with validation
+     *
+     * @param value - value to convert
+     * @return converted String from value
+     * @throws IllegalArgumentException
+     */
+    private static String getString(Object value) {
+        if (!isString(value)) {
+            throw new IllegalArgumentException("Type is not an String");
+        }
+        return ((String) value);
+    }
+
+    /**
+     * Convert value to List with validation
+     *
+     * @param value - value to convert
+     * @return converted List from value
+     * @throws IllegalArgumentException
+     */
+    @SuppressWarnings("unchecked")
+    private static List<Object> getList(Object value) {
+        if (!isList(value)) {
+            throw new IllegalArgumentException("Type is not an List");
+        }
+        return ((List<Object>) value);
+    }
+
+    /**
+     * Convert value to Map with validation
+     *
+     * @param value - value to convert
+     * @return converted Map from value
+     * @throws IllegalArgumentException
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> getDictionary(Object value) {
+        if (!isDictionary(value)) {
+            throw new IllegalArgumentException("Type is not an Dictionary");
+        }
+        return ((Map<String, Object>) value);
     }
 }
