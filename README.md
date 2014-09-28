@@ -22,9 +22,9 @@ It contains only four data types, namely:
 Mapping rules
 -------------
 
- byte string    <-> String
+ byte string    < -- > String
  
- integer        <-> Integer
+ integer        < -- > Integer
  
  list           < -- > ```java List<Object> ```
  
